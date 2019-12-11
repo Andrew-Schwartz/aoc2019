@@ -54,7 +54,6 @@ fn part2(map: &Vec<((i8, i8), u8)>) -> i32 {
         if let Some(((dx, dy), angle)) = option {
             count += 1;
             let (x, y) = (SX + dx, SY + dy);
-            println!("{}: ({},{}) {}", count, x, y, angle);
             if count == 200 { break 100 * x as i32 + y as i32; };
             let i = astrs.iter()
                 .enumerate()

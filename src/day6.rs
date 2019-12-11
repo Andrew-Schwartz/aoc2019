@@ -25,15 +25,6 @@ fn part1(map: &StarMap) -> u32 {
     map.keys().fold(0, |cnt, k| cnt + count_children(map, k))
 }
 
-/*
-is_child(map, "YOU", "COM") // true
-is_child(map, "SAN", "COM") // true
-
-find where
-is_child(map, "YOU"&&"SAN", curr) && !is_child(map, "YOU"&&"SAN", curr.child())
-then curr.to("YOU") + curr.to("SAN") (?+-1?) == result
-*/
-
 #[aoc(day6, part2)]
 fn part2(map: &StarMap) -> u32 {
     let you = &String::from("YOU");

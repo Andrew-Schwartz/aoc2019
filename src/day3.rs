@@ -112,7 +112,7 @@ impl BitAnd for Wire {
         let (rdy, ruy) = (rhs.bottom(), rhs.top());
 
         if self.is_vert() == rhs.is_vert() {
-            None // TODO
+            None // lol who needs to implement this
         } else {
             if self.is_vert() {
                 if (rlx..rrx).contains(&slx) && (sdy..suy).contains(&rdy) {

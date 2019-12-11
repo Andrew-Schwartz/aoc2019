@@ -153,8 +153,6 @@ impl Opcode {
                     Ok(inp) => inp,
                     Err(_) => return Err(Input(Mode::dummy()))
                 };
-//                let res = input.recv().expect("input died");
-//                let res = com.inputs.pop().expect("too few inputs");
                 if DBG { print!("in={} @{}", res, w.index()); }
                 com.write(w, res);
                 Ok(())
@@ -164,7 +162,6 @@ impl Opcode {
                 if DBG { print!("out={}", res); }
                 let output = com.outputs.as_ref().unwrap();
                 output.send(res).expect("output closed");
-//                com.outputs.push(res);
                 Ok(())
             }
             JumpNZero(a, j) => {
