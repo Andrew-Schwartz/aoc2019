@@ -21,33 +21,33 @@ pub type Txin = Sender<i64>;
 pub type Rxout = Receiver<i64>;
 
 impl Computer {
-    pub fn compute(self) -> Self {
-        let mut com = self;
+    pub fn compute(&mut self) {
         loop {
-            if DBG { print!("{}: {} ", com.ptr, com.mem[com.ptr]); }
-            let orig_ptr = com.ptr;
-            let opcode = Opcode::from(&com);
+            if DBG { print!("{}: {} ", self.ptr, self.mem[self.ptr]); }
+            let orig_ptr = self.ptr;
+            let opcode = Opcode::from(&self);
             if DBG { print!(" {} ", opcode); }
 
-            if let Err(code) = Opcode::calculate(&opcode, &mut com) {
+            if let Err(code) = Opcode::calculate(&opcode, self) {
                 match code {
                     Halt => {
                         if DBG { println!() }
-                        com.is_done = true;
-                        return com;
+                        self.is_done = true;
+                        self.outputs = None;
+                        return;
                     }
                     JumpNZero(_, _) | JumpZero(_, _) => {}
-                    Input(_) => return com,
+                    Input(_) => return,
                     _ => unreachable!("{:?} should not error in calculation", opcode)
                 }
             }
 
-            if orig_ptr == com.ptr {
-                com.ptr += opcode.nparams() + opcode.nwrites() + 1;
+            if orig_ptr == self.ptr {
+                self.ptr += opcode.nparams() + opcode.nwrites() + 1;
             }
 
             if DBG { println!(); }
-        }
+        };
     }
 
     fn read(&self, mode: &Mode) -> i64 {
@@ -148,7 +148,6 @@ impl Opcode {
             }
             Input(w) => {
                 let input = com.inputs.as_ref().unwrap();
-
                 let res = match input.try_recv() {
                     Ok(inp) => inp,
                     Err(_) => return Err(Input(Mode::dummy()))

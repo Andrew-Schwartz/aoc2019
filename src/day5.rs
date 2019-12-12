@@ -1,5 +1,5 @@
 use crate::intcode::Computer;
-use std::sync::mpsc::channel;
+use std::iter::once;
 
 #[aoc_generator(day5)]
 fn gen(input: &str) -> Computer {
@@ -7,14 +7,8 @@ fn gen(input: &str) -> Computer {
 }
 
 #[aoc(day5, part1)]
-fn part1(input: &Computer) -> String {
-    let (txin, rxin) = channel();
-    let (txout, rxout) = channel();
-
-    txin.send(1).unwrap();
-
-    let mut com = input.clone_rx_input(rxin);
-    com.tx_output(txout);
+fn part1(com: &Computer) -> String {
+    let (mut com, _, rxout) = com.init(once(1));
 
     com.compute();
     rxout.iter()
@@ -23,14 +17,8 @@ fn part1(input: &Computer) -> String {
 }
 
 #[aoc(day5, part2)]
-fn part2(input: &Computer) ->  String {
-    let (txin, rxin) = channel();
-    let (txout, rxout) = channel();
-
-    txin.send(5).unwrap();
-
-    let mut com = input.clone_rx_input(rxin);
-    com.tx_output(txout);
+fn part2(com: &Computer) ->  String {
+    let (mut com, _, rxout) = com.init(once(5));
 
     com.compute();
     rxout.iter()

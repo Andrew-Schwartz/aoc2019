@@ -1,8 +1,8 @@
-use crate::intcode::{Computer, Txin, Rxout};
-use std::collections::HashSet;
-use std::ops::Range;
+use crate::intcode::{Computer, Rxout, Txin};
 use std::cmp::max;
+use std::collections::HashSet;
 use std::iter::once;
+use std::ops::Range;
 
 #[aoc_generator(day7)]
 fn gen(input: &str) -> Computer {
@@ -10,7 +10,7 @@ fn gen(input: &str) -> Computer {
 }
 
 #[allow(dead_code)]
-fn send_and_run((com, txin, rxout): (Computer, Txin, Rxout), sig: i64) -> i64 {
+fn send_and_run(com: &mut Computer, txin: &Txin, rxout: &Rxout, sig: i64) -> i64 {
     txin.send(sig).unwrap();
     com.compute();
     rxout.iter().last().unwrap()
@@ -21,17 +21,17 @@ fn part1(com: &Computer) -> i64 {
     let mut max_sig = 0;
 
     iter(0_i64..5, |a, b, c, d, e| {
-        let comsa = com.init(once(a));
-        let comsb = com.init(once(b));
-        let comsc = com.init(once(c));
-        let comsd = com.init(once(d));
-        let comse = com.init(once(e));
+        let (mut coma, txina, rxouta) = com.init(once(a));
+        let (mut comb, txinb, rxoutb) = com.init(once(b));
+        let (mut comc, txinc, rxoutc) = com.init(once(c));
+        let (mut comd, txind, rxoutd) = com.init(once(d));
+        let (mut come, txine, rxoute) = com.init(once(e));
 
-        let a_sig = send_and_run(comsa, 0);
-        let b_sig = send_and_run(comsb, a_sig);
-        let c_sig = send_and_run(comsc, b_sig);
-        let d_sig = send_and_run(comsd, c_sig);
-        let e_sig = send_and_run(comse, d_sig);
+        let a_sig = send_and_run(&mut coma, &txina, &rxouta, 0);
+        let b_sig = send_and_run(&mut comb, &txinb, &rxoutb, a_sig);
+        let c_sig = send_and_run(&mut comc, &txinc, &rxoutc, b_sig);
+        let d_sig = send_and_run(&mut comd, &txind, &rxoutd, c_sig);
+        let e_sig = send_and_run(&mut come, &txine, &rxoute, d_sig);
 
         max_sig = max(e_sig, max_sig)
     });
@@ -53,10 +53,10 @@ fn part2(com: &Computer) -> i64 {
         let mut sig = 0;
 
         while !q.is_empty() {
-            let (com, txin, rxout) = q.remove(0);
+            let (mut com, txin, rxout) = q.remove(0);
 
             txin.send(sig).unwrap();
-            let com = com.compute();
+            com.compute();
             sig = rxout.recv().unwrap();
 
             if !com.is_done {

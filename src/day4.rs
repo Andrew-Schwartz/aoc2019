@@ -61,7 +61,7 @@ fn not_part_of_group(arr: &[i8; 6]) -> bool {
     for i in 1..arr.len() {
         if arr[i - 1] == arr[i] &&
             (i == 1 || arr[i - 2] != arr[i]) &&
-            (i == 5 || arr[i + 1] != arr[i])        {
+            (i == 5 || arr[i + 1] != arr[i]) {
             return true;
         }
     }

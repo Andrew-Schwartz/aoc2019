@@ -35,7 +35,6 @@ impl Add for Pt {
     }
 }
 
-
 impl Add<Heading> for Pt {
     type Output = Pt;
 
@@ -87,9 +86,8 @@ impl Robot {
         }
     }
 
-    fn compute(mut self) -> Self {
-        self.brain = self.brain.compute();
-        self
+    fn compute(&mut self) {
+        self.brain.compute()
     }
 
     fn walk(&mut self) {
@@ -107,7 +105,7 @@ fn part1(com: &Computer) -> usize {
     loop {
         let cam_val = *panels.get(&robot.pos).unwrap_or(&false);
         txin.send(if cam_val { 1 } else { 0 }).unwrap();
-        robot = robot.compute();
+        robot.compute();
 
         let color = match rxout.try_recv() {
             Ok(color_code) => color_code == 1,
@@ -142,7 +140,7 @@ fn part2(com: &Computer) -> String {
     loop {
         let cam_val = *panels.get(&robot.pos).unwrap_or(&false);
         txin.send(if cam_val { 1 } else { 0 }).unwrap();
-        robot = robot.compute();
+        robot.compute();
 
         let color = match rxout.try_recv() {
             Ok(color_code) => color_code == 1,
