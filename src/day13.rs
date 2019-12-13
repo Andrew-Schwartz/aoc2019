@@ -3,6 +3,7 @@ use crate::intcode::Computer;
 use std::iter::empty;
 use itertools::{Itertools, Chunk};
 use std::collections::HashSet;
+use std::hint::unreachable_unchecked;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Id {
@@ -22,7 +23,8 @@ impl<N: Into<i64>> From<N> for Id {
             2 => Block,
             3 => Paddle,
             4 => Ball,
-            _ => unreachable!(),
+            _ => unsafe { unreachable_unchecked() },
+//            _ => unreachable!(),
         }
     }
 }
@@ -56,28 +58,27 @@ impl<I> From<Chunk<'_, I>> for Tile
 }
 
 #[aoc_generator(day13)]
-fn gen(input: &str) -> Computer {
-    input.into()
+fn gen(input: &str) -> Vec<i64> {
+    Computer::parse_mem(input)
 }
 
 #[aoc(day13, part1)]
-fn part1(com: &Computer) -> i64 {
-    let (mut com, _, rxout) = com.init(empty());
-
+fn part1(mem: &Vec<i64>) -> i64 {
+    let mut com = Computer::init(mem, empty());
     com.compute();
-
-    rxout.iter()
+    let borrow_checker = com.recv_all()
         .chunks(3)
         .into_iter()
         .map(|mut chunk| if chunk.nth(2).unwrap() == 2 { 1 } else { 0 })
-        .sum()
+        .sum();
+    borrow_checker
 }
 
 #[aoc(day13, part2)]
-fn part2(com: &Computer) -> i64 {
-    let (mut com, txin, rxout) = com.init(empty());
+fn part2(mem: &Vec<i64>) -> i64 {
+    let mut com = Computer::init(mem, empty());
 
-    com.modify_mem(0, 2);
+    com.mem[0] = 2;
 
     let mut paddle_x = 0;
     let mut ball_x = 0;
@@ -87,7 +88,7 @@ fn part2(com: &Computer) -> i64 {
     loop {
         com.compute();
 
-        rxout.try_iter()
+        com.recv_all()
             .chunks(3)
             .into_iter()
             .map(|chunk| Tile::from(chunk))
@@ -100,11 +101,11 @@ fn part2(com: &Computer) -> i64 {
                 _ => {}
             });
 
-        txin.send(match paddle_x {
+        com.send(match paddle_x {
             x if x < ball_x => 1,
             x if x > ball_x => -1,
             _ => 0,
-        }).unwrap();
+        });
 
         if blocks.is_empty() {
             break score;

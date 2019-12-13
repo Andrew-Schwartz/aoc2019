@@ -1,1 +1,1 @@
-cargo aoc bench -d 12 >> bench_all.txt
+cargo aoc bench -d 13 >> bench_all.txt

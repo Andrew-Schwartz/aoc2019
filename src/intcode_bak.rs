@@ -1,22 +1,24 @@
 use Opcode::*;
 use Mode::*;
 use std::fmt::{Debug, Formatter, Error, Display};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::io::Write;
-use std::collections::VecDeque;
-use std::hint::unreachable_unchecked;
 
 //const DBG: bool = true;
 const DBG: bool = false;
 
 #[derive(Debug)]
 pub struct Computer {
-    pub mem: Vec<i64>,
+    mem: Vec<i64>,
     ptr: usize,
-    input: VecDeque<i64>,
-    output: VecDeque<i64>,
+    inputs: Option<Receiver<i64>>,
+    outputs: Option<Sender<i64>>,
     rel_base: i64,
     pub is_done: bool,
 }
+
+pub type Txin = Sender<i64>;
+pub type Rxout = Receiver<i64>;
 
 impl Computer {
     pub fn compute(&mut self) {
@@ -31,12 +33,13 @@ impl Computer {
                     Halt => {
                         if DBG { println!() }
                         self.is_done = true;
+                        self.outputs = None;
                         return;
                     }
                     JumpNZero(_, _) | JumpZero(_, _) => {}
                     Input(_) => return,
+                    _ => unsafe { unreachable_unchecked!() },
 //                    _ => unreachable!("{:?} should not error in calculation", opcode)
-                    _ => unsafe { unreachable_unchecked() },
                 }
             }
 
@@ -60,39 +63,61 @@ impl Computer {
         self.mem[index] = val
     }
 
-    pub fn send(&mut self, val: i64) {
-        self.input.push_back(val);
-    }
-
-    pub fn recv(&mut self) -> Option<i64> {
-        self.output.pop_front()
-    }
-
-    pub fn send_all(&mut self, vals: impl Iterator<Item=i64>) {
-        vals.for_each(|n| self.send(n));
-    }
-
-    pub fn recv_all(&mut self) -> impl Iterator<Item=i64> + '_ {
-        self.output.drain(..)
-    }
-
-    pub fn init<I: IntoIterator<Item=i64>>(mem: &Vec<i64>, vals: I) -> Self {
+    pub fn clone_rx_input(&self, input: Receiver<i64>) -> Self {
+        let Computer { mem, ptr, inputs: _, outputs, rel_base, is_done } = self;
+        let mem = mem.clone();
+        let ptr = ptr.clone();
+        let outputs = outputs.clone();
+        let rel_base = rel_base.clone();
+        let is_done = is_done.clone();
         Computer {
-            mem: mem.clone(),
+            mem,
+            ptr,
+            inputs: Some(input),
+            outputs,
+            rel_base,
+            is_done,
+        }
+    }
+
+    pub fn tx_output(&mut self, output: Sender<i64>) {
+        self.outputs = Some(output);
+    }
+
+    pub fn new(mem: Vec<i64>) -> Self {
+        Computer {
+            mem,
             ptr: 0,
-            input: vals.into_iter().collect(),
-            output: Default::default(),
+            inputs: None,
+            outputs: None,
             rel_base: 0,
             is_done: false,
         }
     }
 
-    pub fn parse_mem(mem: &str) -> Vec<i64> {
-        mem.lines()
+    pub fn init<I>(&self, inputs: I) -> (Computer, Txin, Rxout) where I: IntoIterator<Item=i64> {
+        let (txin, rxin) = channel();
+        let (txout, rxout) = channel();
+
+        let mut com = self.clone_rx_input(rxin);
+        com.tx_output(txout);
+        inputs.into_iter().for_each(|i| txin.send(i).unwrap());
+        (com, txin, rxout)
+    }
+
+    pub fn modify_mem(&mut self, addr: usize, new_val: i64) {
+        self.mem[addr] = new_val;
+    }
+}
+
+impl From<&str> for Computer {
+    fn from(input: &str) -> Self {
+        let mem = input.lines()
             .take(1)
             .flat_map(|line| line.split(","))
             .map(|n| n.trim().parse().unwrap())
-            .collect()
+            .collect();
+        Computer::new(mem)
     }
 }
 
@@ -127,9 +152,10 @@ impl Opcode {
                 Ok(())
             }
             Input(w) => {
-                let res = match com.input.pop_front() {
-                    Some(inp) => inp,
-                    None => return Err(Input(Mode::dummy()))
+                let input = com.inputs.as_ref().unwrap();
+                let res = match input.try_recv() {
+                    Ok(inp) => inp,
+                    Err(_) => return Err(Input(Mode::dummy()))
                 };
                 if DBG { print!("in={} @{}", res, w.index()); }
                 com.write(w, res);
@@ -138,7 +164,8 @@ impl Opcode {
             Output(a) => {
                 let res = com.read(a);
                 if DBG { print!("out={}", res); }
-                com.output.push_back(res);
+                let output = com.outputs.as_ref().unwrap();
+                output.send(res).expect("output closed");
                 Ok(())
             }
             JumpNZero(a, j) => {
@@ -215,50 +242,50 @@ impl Opcode {
         }
     }
 
-    fn from(com: &Computer) -> Self {
-        let ptr = com.ptr;
-        let mem = &com.mem;
-        let instr = com.mem[ptr];
+    fn from(computer: &Computer) -> Self {
+        let Computer { mem, ptr, inputs: _, outputs: _, rel_base: _, is_done: _ } = computer;
+        let ptr = *ptr;
+        let instr = mem[ptr];
         let code = instr % 100;
         match code {
             1 => {
                 if DBG { print!("[{}, {}, {}]", mem[ptr + 1], mem[ptr + 2], mem[ptr + 3], ); }
-                Add(Mode::from(com, 1), Mode::from(com, 2), Mode::from(com, 3))
+                Add(Mode::from(computer, 1), Mode::from(computer, 2), Mode::from(computer, 3))
             }
             2 => {
                 if DBG { print!("[{}, {}, {}]", mem[ptr + 1], mem[ptr + 2], mem[ptr + 3], ); }
-                Mult(Mode::from(com, 1), Mode::from(com, 2), Mode::from(com, 3))
+                Mult(Mode::from(computer, 1), Mode::from(computer, 2), Mode::from(computer, 3))
             }
             3 => {
                 if DBG { print!("[{}]", mem[ptr + 1]); }
-                Input(Mode::from(com, 1))
+                Input(Mode::from(computer, 1))
             }
             4 => {
                 if DBG { print!("[{}]", mem[ptr + 1]); }
-                Output(Mode::from(com, 1))
+                Output(Mode::from(computer, 1))
             }
             5 => {
                 if DBG { print!("[{}, {}]", mem[ptr + 1], mem[ptr + 2]); }
-                JumpNZero(Mode::from(com, 1), Mode::from(com, 2))
+                JumpNZero(Mode::from(computer, 1), Mode::from(computer, 2))
             }
             6 => {
                 if DBG { print!("[{}, {}]", mem[ptr + 1], mem[ptr + 2]); }
-                JumpZero(Mode::from(com, 1), Mode::from(com, 2))
+                JumpZero(Mode::from(computer, 1), Mode::from(computer, 2))
             }
             7 => {
                 if DBG { print!("[{}, {}, {}]", mem[ptr + 1], mem[ptr + 2], mem[ptr + 3], ); }
-                Less(Mode::from(com, 1), Mode::from(com, 2), Mode::from(com, 3))
+                Less(Mode::from(computer, 1), Mode::from(computer, 2), Mode::from(computer, 3))
             }
             8 => {
                 if DBG { print!("[{}, {}, {}]", mem[ptr + 1], mem[ptr + 2], mem[ptr + 3], ); }
-                Equal(Mode::from(com, 1), Mode::from(com, 2), Mode::from(com, 3))
+                Equal(Mode::from(computer, 1), Mode::from(computer, 2), Mode::from(computer, 3))
             }
             9 => {
                 if DBG { print!("[{}]", mem[ptr + 1]); }
-                SetRelBase(Mode::from(com, 1))
+                SetRelBase(Mode::from(computer, 1))
             }
             99 => Halt,
-            _ => unsafe { unreachable_unchecked() },
+            _ => unsafe { unreachable_unchecked!() },
 //            _ => unreachable!("Opcode::from instr={}", instr),
         }
     }
@@ -290,7 +317,7 @@ enum Mode {
 
 impl Mode {
     fn from(computer: &Computer, offset: usize) -> Self {
-        let Computer { mem, ptr, input: _, output: _, rel_base, is_done: _ } = computer;
+        let Computer { mem, ptr, inputs: _, outputs: _, rel_base, is_done: _ } = computer;
         let ptr = *ptr;
         let rel_base = *rel_base;
         let instr = mem[ptr];
@@ -299,8 +326,8 @@ impl Mode {
             0 => Pos(mem[ptr + offset] as usize),
             1 => Imm(ptr + offset),
             2 => Rel((mem[ptr + offset] + rel_base) as usize),
+            _ => unsafe { unreachable_unsafe!() },
 //            fail => unreachable!("Mode::from, key={}", fail),
-            _ => unsafe { unreachable_unchecked() },
         }
     }
 
@@ -315,4 +342,13 @@ impl Mode {
     fn dummy() -> Self { // thicc
         Pos(0) // should be unreachable to actually get this value
     }
+}
+
+#[macro_export]
+macro_rules! send {
+    ($sender:ident, [$($x:expr),*]) => {
+        $(
+            $sender.send($x).expect("unable to send");
+        )*
+    };
 }

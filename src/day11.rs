@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use std::ops::{AddAssign, Add};
 use crate::day11::Heading::*;
 use std::cmp::{min, max};
+use std::hint::unreachable_unchecked;
 
 #[aoc_generator(day11)]
-fn gen(input: &str) -> Computer {
-    input.into()
+fn gen(input: &str) -> Vec<i64> {
+    Computer::parse_mem(input)
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Default)]
@@ -66,28 +67,23 @@ impl AddAssign for Heading {
                 Left => Up,
                 Right => Down,
             },
-            fail => unreachable!("tried to turn {:?}", fail)
+            _ => unsafe { unreachable_unchecked() },
+//            fail => unreachable!("tried to turn {:?}", fail)
         }
     }
 }
 
 struct Robot {
-    brain: Computer,
     pos: Pt,
     heading: Heading,
 }
 
 impl Robot {
-    fn new(brain: Computer) -> Self {
+    fn new() -> Self {
         Robot {
-            brain,
             pos: Pt::default(),
             heading: Heading::Up,
         }
-    }
-
-    fn compute(&mut self) {
-        self.brain.compute()
     }
 
     fn walk(&mut self) {
@@ -96,25 +92,26 @@ impl Robot {
 }
 
 #[aoc(day11, part1)]
-fn part1(com: &Computer) -> usize {
-    let (com, txin, rxout) = com.init(empty());
+fn part1(mem: &Vec<i64>) -> usize {
+    let mut com = Computer::init(mem, empty());
 
     let mut panels = HashMap::<Pt, bool>::new();
-    let mut robot = Robot::new(com);
+    let mut robot = Robot::new();
 
     loop {
         let cam_val = *panels.get(&robot.pos).unwrap_or(&false);
-        txin.send(if cam_val { 1 } else { 0 }).unwrap();
-        robot.compute();
+        com.send(cam_val as i64);
+        com.compute();
 
-        let color = match rxout.try_recv() {
-            Ok(color_code) => color_code == 1,
-            Err(_) => break,
+        let color = match com.recv() {
+            Some(color_code) => color_code == 1,
+            None => break,
         };
-        let turn = match rxout.try_recv().unwrap() {
+        let turn = match com.recv().unwrap() {
             0 => Heading::Left,
             1 => Heading::Right,
-            fail => unreachable!("turn recv'd {}", fail)
+//            fail => unreachable!("turn recv'd {}", fail),
+            _ => unsafe { unreachable_unchecked() },
         };
 
         panels.insert(robot.pos, color);
@@ -127,29 +124,30 @@ fn part1(com: &Computer) -> usize {
 }
 
 #[aoc(day11, part2)]
-fn part2(com: &Computer) -> String {
-    let (com, txin, rxout) = com.init(empty());
+fn part2(mem: &Vec<i64>) -> String {
+    let mut com = Computer::init(mem, empty());
 
     let mut panels = HashMap::<Pt, bool>::new();
     panels.insert(Pt::default(), true);
-    let mut robot = Robot::new(com);
+    let mut robot = Robot::new();
 
     let (mut min_x, mut max_x) = (0, 0);
     let (mut min_y, mut max_y) = (0, 0);
 
     loop {
         let cam_val = *panels.get(&robot.pos).unwrap_or(&false);
-        txin.send(if cam_val { 1 } else { 0 }).unwrap();
-        robot.compute();
+        com.send(cam_val as i64);
+        com.compute();
 
-        let color = match rxout.try_recv() {
-            Ok(color_code) => color_code == 1,
-            Err(_) => break,
+        let color = match com.recv() {
+            Some(color_code) => color_code == 1,
+            None => break,
         };
-        let turn = match rxout.try_recv().unwrap() {
+        let turn = match com.recv().unwrap() {
             0 => Heading::Left,
             1 => Heading::Right,
-            fail => unreachable!("turn recv'd {}", fail)
+//            fail => unreachable!("turn recv'd {}", fail)
+            _ => unsafe { unreachable_unchecked() },
         };
 
         panels.insert(robot.pos, color);

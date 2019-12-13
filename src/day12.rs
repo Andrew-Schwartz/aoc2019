@@ -86,7 +86,7 @@ fn part2(moons: &[Moon; 4]) -> usize {
     let y_per = yt.join().unwrap();
     let z_per = zt.join().unwrap();
 
-    lcm(lcm(x_per, y_per), z_per)
+    lcm(lcm(x_per, y_per), z_per) * 2
 }
 
 fn lcm(a: usize, b: usize) -> usize {
@@ -109,7 +109,7 @@ fn find_period(moons: [Moon; 4], coord: usize) -> usize {
         .map(|moon| (moon.pos[coord], moon.vel[coord]))
         .to_4rray();
 
-    let init_state = moons;
+    let init_vels = moons;
     let mut count = 0;
 
     loop {
@@ -129,7 +129,7 @@ fn find_period(moons: [Moon; 4], coord: usize) -> usize {
             apply_vel.0 += apply_vel.1
         }
 
-        if moons == init_state {
+        if moons.iter().zip(init_vels.iter()).all(|(&(_, mv), &(_, init_v))| mv == init_v) {
             break count;
         }
     }

@@ -1,5 +1,6 @@
 use std::ops::{Add, AddAssign, BitAnd, Mul, Sub, BitXor};
 use std::cmp::{min, max};
+use std::hint::unreachable_unchecked;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 struct Pt(i32, i32);
@@ -141,7 +142,8 @@ fn gen(input: &str) -> (Wires, Wires) {
                         "R" => Pt(num, 0),
                         "U" => Pt(0, num),
                         "D" => Pt(0, -num),
-                        _ => unreachable!(),
+//                        _ => unreachable!(),
+                        _ => unsafe { unreachable_unchecked() },
                     };
                     let wire = Wire {
                         start: curr,
@@ -203,6 +205,6 @@ impl WiresExt for Wires {
                 Err(d) => dist += d,
             }
         }
-        unreachable!()
+        unsafe { unreachable_unchecked() }
     }
 }

@@ -10,14 +10,14 @@ Day3 - Part2/(default)  time:   [537.32 us 540.31 us 543.20 us]
 Day4 - Part1/(default)  time:   [6.3692 ms 6.3834 ms 6.3998 ms]
 Day4 - Part2/(default)  time:   [6.3624 ms 6.3720 ms 6.3826 ms]
 
-Day5 - Part1/(default)  time:   [6.9686 us 7.1766 us 7.3855 us]
+Day5 - Part1/(default)  time:   [5.7863 us 5.9460 us 6.1115 us]
 Day5 - Part2/(default)  time:   [5.2451 us 5.3666 us 5.5035 us]
 
 Day6 - Part1/(default)  time:   [3.5548 ms 3.5777 ms 3.6062 ms]
 Day6 - Part2/(default)  time:   [4.8284 ms 4.9333 ms 5.0564 ms]
 
-Day7 - Part1/(default)  time:   [1.4327 ms 1.4492 ms 1.4676 ms]
-Day7 - Part2/(default)  time:   [2.8825 ms 2.9130 ms 2.9455 ms]
+Day7 - Part1/(default)  time:   [1.2386 ms 1.2622 ms 1.2891 ms]
+Day7 - Part2/(default)  time:   [2.2293 ms 2.3319 ms 2.4570 ms]
 
 Day8 - Part1/(default)  time:   [5.0999 us 5.2232 us 5.3783 us]
 Day8 - Part2/(default)  time:   [39.332 us 39.697 us 40.106 us]
@@ -34,5 +34,5 @@ Day11 - Part2/(default) time:   [412.66 us 425.09 us 440.27 us]
 Day12 - Part1/(default) time:   [98.149 us 99.236 us 100.92 us]
 Day12 - Part2/(default) time:   [4.1792 ms 4.1946 ms 4.2114 ms]
 
-Day13 - Part1/(default) time:   [848.05 us 873.51 us 901.21 us]
-Day13 - Part2/(default) time:   [30.887 ms 31.975 ms 33.267 ms]
+Day13 - Part1/(default) time:   [565.85 us 575.09 us 586.04 us]
+Day13 - Part2/(default) time:   [30.059 ms 31.343 ms 32.673 ms]

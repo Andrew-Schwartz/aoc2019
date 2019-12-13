@@ -2,24 +2,24 @@ use crate::intcode::Computer;
 use std::iter::once;
 
 #[aoc_generator(day9)]
-fn gen(input: &str) -> Computer {
-    input.into()
+fn gen(input: &str) -> Vec<i64> {
+    Computer::parse_mem(input)
 }
 
 #[aoc(day9, part1)]
-fn part1(com: &Computer) -> String {
-    let (mut com, _, rxout) = com.init(once(1));
+fn part1(mem: &Vec<i64>) -> String {
+    let mut com = Computer::init(mem, once(1));
     com.compute();
-    rxout.iter()
+    com.recv_all()
         .map(|n| format!("{}, ", n))
         .collect()
 }
 
 #[aoc(day9, part2)]
-fn part2(com: &Computer) -> String {
-    let (mut com, _, rxout) = com.init(once(2));
+fn part2(mem: &Vec<i64>) -> String {
+    let mut com = Computer::init(mem, once(2));
     com.compute();
-    rxout.iter()
+    com.recv_all()
         .map(|n| format!("{}, ", n))
         .collect()
 }

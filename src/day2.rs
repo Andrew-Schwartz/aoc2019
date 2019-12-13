@@ -1,3 +1,5 @@
+use std::hint::unreachable_unchecked;
+
 #[aoc_generator(day2)]
 fn gen(input: &str) -> Vec<i32> {
     input.split(",")
@@ -15,17 +17,17 @@ fn part1(input: &Vec<i32>) -> i32 {
 
 #[aoc(day2, part2)]
 fn part2(input: &Vec<i32>) -> i32 {
-    for noun in 0..99 {
-        for verb in 0..99 {
+    for noun in 0..=99 {
+        for verb in 0..=99 {
             let mut mem = input.clone();
             mem[1] = noun;
             mem[2] = verb;
             if compute(&mut mem) == 19690720 {
-                return 100 * noun + verb
+                return 100 * noun + verb;
             }
         }
     }
-    unreachable!()
+    unsafe { unreachable_unchecked() }
 }
 
 fn compute(mem: &mut Vec<i32>) -> i32 {
