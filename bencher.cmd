@@ -1,11 +1,1 @@
-cargo aoc bench -d 1 >> bench_all.txt
-cargo aoc bench -d 2 >> bench_all.txt
-cargo aoc bench -d 3 >> bench_all.txt
-cargo aoc bench -d 4 >> bench_all.txt
-cargo aoc bench -d 5 >> bench_all.txt
-cargo aoc bench -d 6 >> bench_all.txt
-cargo aoc bench -d 7 >> bench_all.txt
-cargo aoc bench -d 8 >> bench_all.txt
-cargo aoc bench -d 9 >> bench_all.txt
-cargo aoc bench -d 10 >> bench_all.txt
-cargo aoc bench -d 11 >> bench_all.txt
+cargo aoc bench -d 12 >> bench_all.txt

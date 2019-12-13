@@ -103,6 +103,10 @@ impl Computer {
         inputs.into_iter().for_each(|i| txin.send(i).unwrap());
         (com, txin, rxout)
     }
+
+    pub fn modify_mem(&mut self, addr: usize, new_val: i64) {
+        self.mem[addr] = new_val;
+    }
 }
 
 impl From<&str> for Computer {
