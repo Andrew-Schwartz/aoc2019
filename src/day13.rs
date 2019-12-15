@@ -62,17 +62,17 @@ fn gen(input: &str) -> Vec<i64> {
     Computer::parse_mem(input)
 }
 
-#[aoc(day13, part1)]
-fn part1(mem: &Vec<i64>) -> i64 {
-    let mut com = Computer::init(mem, empty());
-    com.compute();
-    let borrow_checker = com.recv_all()
-        .chunks(3)
-        .into_iter()
-        .map(|mut chunk| if chunk.nth(2).unwrap() == 2 { 1 } else { 0 })
-        .sum();
-    borrow_checker
-}
+//#[aoc(day13, part1)]
+//fn part1(mem: &Vec<i64>) -> i64 {
+//    let mut com = Computer::init(mem, empty());
+//    com.compute();
+//    let borrow_checker = com.recv_all()
+//        .chunks(3)
+//        .into_iter()
+//        .map(|mut chunk| if chunk.nth(2).unwrap() == 2 { 1 } else { 0 })
+//        .sum();
+//    borrow_checker
+//}
 
 #[aoc(day13, part2)]
 fn part2(mem: &Vec<i64>) -> i64 {
@@ -96,16 +96,15 @@ fn part2(mem: &Vec<i64>) -> i64 {
                 Block => { blocks.insert((x, y)); }
                 Paddle => paddle_x = x,
                 Ball => ball_x = x,
-                Score(sc) => score = sc,
+                Score(sc) => {
+                    println!("{}", sc - score);
+                    score = sc
+                }
                 Empty => { blocks.remove(&(x, y)); }
                 _ => {}
             });
 
-        com.send(match paddle_x {
-            x if x < ball_x => 1,
-            x if x > ball_x => -1,
-            _ => 0,
-        });
+        com.send((ball_x - paddle_x).signum());
 
         if blocks.is_empty() {
             break score;

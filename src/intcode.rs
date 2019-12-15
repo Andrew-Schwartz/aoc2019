@@ -139,6 +139,11 @@ impl Opcode {
                 let res = com.read(a);
                 if DBG { print!("out={}", res); }
                 com.output.push_back(res);
+                if com.output.len() % 3 == 0 && !com.output.is_empty() {
+                    if com.output[com.output.len() - 3] == -1 {
+                        println!("{:?}", com.output);
+                    }
+                }
                 Ok(())
             }
             JumpNZero(a, j) => {

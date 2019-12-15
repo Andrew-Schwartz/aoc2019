@@ -1,0 +1,22 @@
+100000000000 ORE => 7 A
+14 A => 7 B
+3 B, 4 A => 1 C
+14 B => 1 FUEL
+
+1 FUEL <- 14 B
+           7 B <- 14 A
+                   7 A <- 250b ORE
+
+SCALED:
+250b ORE => 7 A
+14 A => 7 B
+14 B => 1 FUEL
+
+1000b ORE, 0 A , 0 B , 0 FUEL
+750b ORE , 7 A , 0 B , 0 FUEL
+500b ORE , 14 A, 0 B , 0 FUEL
+250b ORE , 21 A, 0 B , 0 FUEL
+0 ORE    , 28 A, 0 B , 0 FUEL
+0 ORE    , 14 A, 7 B , 0 FUEL
+0 ORE    , 0 A , 14 B, 0 FUEL
+0 ORE    , 0 A , 0 B , 1 FUEL
