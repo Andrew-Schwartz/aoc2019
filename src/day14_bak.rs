@@ -28,11 +28,21 @@ fn gen(input: &str) -> RxnMap {
         .collect()
 }
 
+const FACTOR: SIZE = 2540160;
+
 #[aoc(day14, part1)]
 fn part1(recipes: &RxnMap) -> SIZE {
     let mut store = HashMap::new();
+//    let recipes = recipes.iter()
+//        .map(|(prod, (prod_qty, ingreds))| {
+//            let ingreds = ingreds.iter()
+//                .map(|(name, qty)| (name.clone(), *qty * FACTOR))
+//                .collect();
+//            (prod.clone(), (prod_qty * FACTOR, ingreds))
+//        })
+//        .collect();
 
-    make("FUEL", 1, &mut store, recipes)
+    make("FUEL", 1, &mut store, &recipes)
 }
 
 #[allow(mutable_borrow_reservation_conflict)]
@@ -97,7 +107,7 @@ fn collapse_to_ore(goal: &str, scaled: &RxnMap, ore: &mut HashMap<String, (SIZE,
 
     let total_ore = ingreds.iter()
         .map(|(name, qty)| {
-            println!("{} {} takes {} ORE", ore.get(name).unwrap().0, name, ore.get(name).unwrap().1);
+//            println!("{} {} takes {} ORE", ore.get(name).unwrap().0, name, ore.get(name).unwrap().1);
             (qty, ore.get(name).unwrap())
         })
         .map(|(&needed_qty, &(prod_qty, ore_qty))| {
@@ -139,7 +149,7 @@ fn scale(goal: &str, recipes: &RxnMap, scaled_recipes: &mut RxnMap) {
     // ORE => 5 H, => 2 G, => 7 P
     // LCM = 70
     // scaled recipe = Q = (630, [H 840, G 70, P 560])
-    println!("lcmvec={:?}", &lcm);
+//    println!("lcmvec={:?}", &lcm);
     let lcm = lcm.into_iter()
         .fold1(|a, b| lcm2(a, b)).unwrap_or(1);
 
@@ -151,7 +161,7 @@ fn scale(goal: &str, recipes: &RxnMap, scaled_recipes: &mut RxnMap) {
     let scaled_output = orig_goal_qty * lcm;
 //    let scaled_output = lcm2(orig_goal_qty, lcm);
 
-    println!("{} {}: {:?}", scaled_output, goal, scaled_ingreds);
+//    println!("{} {}: {:?}", scaled_output, goal, scaled_ingreds);
 
     let scaled_recipe = (scaled_output, scaled_ingreds);
     scaled_recipes.insert(goal.to_string(), scaled_recipe);
